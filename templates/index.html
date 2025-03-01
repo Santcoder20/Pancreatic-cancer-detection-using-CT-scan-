@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pancreatic Cancer Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Pancreatic Cancer Detection from CT Scan Images</h1>
+        <form id="upload-form" action="/predict" method="post" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*" required>
+            <button type="submit">Upload and Predict</button>
+        </form>
+        <div id="result-container">
+            <p id="result"></p>
+            <img id="segmented-image" style="display: none; max-width: 100%; height: auto;" alt="Segmented Image">
+        </div>
+    </div>
+    <script>
+        document.getElementById('upload-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            
+            // Show a loading indicator (optional)
+            document.getElementById('result').innerText = 'Processing...';
+            document.getElementById('segmented-image').style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Display the result
+                document.getElementById('result').innerText = result.result;
+
+                // Display the segmented image
+                if (result.segmented_image) {
+                    const imgElement = document.getElementById('segmented-image');
+                    imgElement.src = `data:image/jpeg;base64,${result.segmented_image}`;
+                    imgElement.style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('result').innerText = 'An error occurred. Please try again.';
+                console.error('Error:', error);
+            }
+        };
+    </script>
+</body>
+</html>
